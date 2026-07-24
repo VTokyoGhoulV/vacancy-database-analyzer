@@ -124,6 +124,20 @@ files = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.9.9"
+description = "Deprecated package"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
+]
+
+[package.dependencies]
+python-dotenv = "*"
+
+[[package]]
 name = "flake8"
 version = "7.3.0"
 description = "the modular source code checker: pep8 pyflakes and co"
@@ -497,6 +511,21 @@ files = [
 ]
 
 [[package]]
+name = "python-dotenv"
+version = "1.2.2"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a"},
+    {file = "python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3"},
+]
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "pytokens"
 version = "0.4.1"
 description = "A Fast, spec compliant Python 3.14+ tokenizer that runs on older Pythons."
@@ -566,4 +595,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.14"
-content-hash = "bd2e2d6ab17baaf299f621ac089785c39fc3c2daa4003449fc61b316ce61e9ca"
+content-hash = "d6c9907718d0ca22747312c1c11e7067db674cf9a7b3994701e3ad8cf354ec5b"
