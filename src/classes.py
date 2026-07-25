@@ -55,25 +55,17 @@ class DBManager:
                     SELECT
                     v.name,
                     v.alternate_url,
-                    a.name,
+                    v.area_name,
                     e.name,
                     e.alternate_url,
-                    em.name,
-                    s.salary_from,
-                    s.salary_to,
-                    sp.requirement
+                    v.employment_name,
+                    v.salary_from,
+                    v.salary_to,
+                    v.requirement
 
                     FROM vacancies as v
-                    JOIN area as a
-                        ON v.id = a.vacancy_id
                     JOIN employers as e
                         ON v.id = e.vacancy_id
-                    JOIN employment as em
-                        ON v.id = em.vacancy_id
-                    JOIN salary as s
-                        ON v.id = s.vacancy_id
-                    JOIN snippet as sp
-                        ON v.id = sp.vacancy_id
                     """)
                 result: list[VacancyRow] = cur.fetchall()
         return result
@@ -84,7 +76,7 @@ class DBManager:
             with conn.cursor() as cur:
                 cur.execute("""
                     SELECT AVG((salary_from + salary_to) / 2) as avg_salary
-                    FROM salary
+                    FROM vacancies
                     WHERE salary_from IS NOT NULL AND salary_to IS NOT NULL
                     """)
                 result: list[AverageSalary] = cur.fetchall()
@@ -103,27 +95,19 @@ class DBManager:
                     SELECT
                     v.name,
                     v.alternate_url,
-                    a.name,
+                    v.area_name,
                     e.name,
                     e.alternate_url,
-                    em.name,
-                    s.salary_from,
-                    s.salary_to,
-                    sp.requirement
+                    v.employment_name,
+                    v.salary_from,
+                    v.salary_to,
+                    v.requirement
 
                     FROM vacancies as v
-                    JOIN area as a
-                        ON v.id = a.vacancy_id
                     JOIN employers as e
                         ON v.id = e.vacancy_id
-                    JOIN employment as em
-                        ON v.id = em.vacancy_id
-                    JOIN salary as s
-                        ON v.id = s.vacancy_id
-                    JOIN snippet as sp
-                        ON v.id = sp.vacancy_id
 
-                    WHERE ((s.salary_from + s.salary_to) / 2) > %s
+                    WHERE ((v.salary_from + v.salary_to) / 2) > %s
                     ORDER BY v.id
                     """,
                     (avg_salary,),
@@ -140,25 +124,17 @@ class DBManager:
                     SELECT
                     v.name,
                     v.alternate_url,
-                    a.name,
+                    v.area_name,
                     e.name,
                     e.alternate_url,
-                    em.name,
-                    s.salary_from,
-                    s.salary_to,
-                    sp.requirement
+                    v.employment_name,
+                    v.salary_from,
+                    v.salary_to,
+                    v.requirement
 
                     FROM vacancies as v
-                    JOIN area as a
-                        ON v.id = a.vacancy_id
                     JOIN employers as e
                         ON v.id = e.vacancy_id
-                    JOIN employment as em
-                        ON v.id = em.vacancy_id
-                    JOIN salary as s
-                        ON v.id = s.vacancy_id
-                    JOIN snippet as sp
-                        ON v.id = sp.vacancy_id
                     WHERE v.name ILIKE %s
                     """,
                     (f"%{key_word}%",),

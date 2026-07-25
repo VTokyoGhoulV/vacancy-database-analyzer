@@ -50,45 +50,25 @@ def create_tables_if_not_exist(conn_params: dict) -> None:
         published_at date,
         created_at date,
         archived int,
-        alternate_url text
-        )""")
-
-        conn.commit()
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS area (
-        vacancy_id int PRIMARY KEY,
-        id int,
-        name text,
-
-        CONSTRAINT area_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS salary (
-        vacancy_id int PRIMARY KEY,
+        alternate_url text,
+        area_id int,
+        area_name text,
         salary_from int,
         salary_to int,
-        currency text,
-        gross int,
-
-        CONSTRAINT salary_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
+        salary_currency text,
+        salary_gross int,
+        type_id text,
+        type_name text,
+        requirement text,
+        responsibility text,
+        experience_id text,
+        experience_name text,
+        employment_id text,
+        employment_name text,
+        schedule_id text,
+        schedule_name text
         )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS type (
-        vacancy_id int PRIMARY KEY,
-        id text,
-        name text,
-
-        CONSTRAINT type_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
+        conn.commit()
 
         cursor.execute("""CREATE TABLE IF NOT EXISTS employers (
         vacancy_id int PRIMARY KEY,
@@ -102,51 +82,6 @@ def create_tables_if_not_exist(conn_params: dict) -> None:
         REFERENCES vacancies(id)
         ON DELETE CASCADE
         )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS snippet (
-        vacancy_id int PRIMARY KEY,
-        requirement text,
-        responsibility text,
-
-        CONSTRAINT snippet_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS experience (
-        vacancy_id int PRIMARY KEY,
-        id text,
-        name text,
-
-        CONSTRAINT experience_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS employment (
-        vacancy_id int PRIMARY KEY,
-        id text,
-        name text,
-
-        CONSTRAINT employment_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
-
-        cursor.execute("""CREATE TABLE IF NOT EXISTS schedule (
-        vacancy_id int PRIMARY KEY,
-        id text,
-        name text,
-
-        CONSTRAINT schedule_vacancy_fk
-        FOREIGN KEY (vacancy_id)
-        REFERENCES vacancies(id)
-        ON DELETE CASCADE
-        )""")
-
         conn.commit()
 
 
@@ -161,6 +96,15 @@ def add_data_to_db(data: dict, conn_params: dict) -> None:
     ):
         for vac in data["items"]:
             with conn:
+                area = vac.get("area") or {}
+                salary = vac.get("salary") or {}
+                type_ = vac.get("type") or {}
+                snippet = vac.get("snippet") or {}
+                experience = vac.get("experience") or {}
+                employment = vac.get("employment") or {}
+                schedule = vac.get("schedule") or {}
+                employer = vac.get("employer")
+
                 cursor.execute(
                     """
                     INSERT INTO vacancies (
@@ -169,16 +113,51 @@ def add_data_to_db(data: dict, conn_params: dict) -> None:
                         published_at,
                         created_at,
                         archived,
-                        alternate_url
+                        alternate_url,
+                        area_id,
+                        area_name,
+                        salary_from,
+                        salary_to,
+                        salary_currency,
+                        salary_gross,
+                        type_id,
+                        type_name,
+                        requirement,
+                        responsibility,
+                        experience_id,
+                        experience_name,
+                        employment_id,
+                        employment_name,
+                        schedule_id,
+                        schedule_name
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
                     ON CONFLICT (id)
                     DO UPDATE SET
                         name = EXCLUDED.name,
                         published_at = EXCLUDED.published_at,
                         created_at = EXCLUDED.created_at,
                         archived = EXCLUDED.archived,
-                        alternate_url = EXCLUDED.alternate_url
+                        alternate_url = EXCLUDED.alternate_url,
+                        area_id = EXCLUDED.area_id,
+                        area_name = EXCLUDED.area_name,
+                        salary_from = EXCLUDED.salary_from,
+                        salary_to = EXCLUDED.salary_to,
+                        salary_currency = EXCLUDED.salary_currency,
+                        salary_gross = EXCLUDED.salary_gross,
+                        type_id = EXCLUDED.type_id,
+                        type_name = EXCLUDED.type_name,
+                        requirement = EXCLUDED.requirement,
+                        responsibility = EXCLUDED.responsibility,
+                        experience_id = EXCLUDED.experience_id,
+                        experience_name = EXCLUDED.experience_name,
+                        employment_id = EXCLUDED.employment_id,
+                        employment_name = EXCLUDED.employment_name,
+                        schedule_id = EXCLUDED.schedule_id,
+                        schedule_name = EXCLUDED.schedule_name
                     """,
                     (
                         int(vac["id"]),
@@ -187,83 +166,26 @@ def add_data_to_db(data: dict, conn_params: dict) -> None:
                         vac.get("created_at"),
                         int(vac.get("archived", 0)),
                         vac.get("alternate_url"),
+                        int(area["id"]),
+                        area.get("name"),
+                        int(salary["from"]),
+                        int(salary["to"]),
+                        salary.get("currency"),
+                        int(salary["gross"]),
+                        type_.get("id"),
+                        type_.get("name"),
+                        snippet.get("requirement"),
+                        snippet.get("responsibility"),
+                        experience.get("id"),
+                        experience.get("name"),
+                        employment.get("id"),
+                        employment.get("name"),
+                        schedule.get("id"),
+                        schedule.get("name"),
                     ),
                 )
 
-                area = vac.get("area")
-
-                if area is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO area (
-                            vacancy_id,
-                            id,
-                            name
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                            id = EXCLUDED.id,
-                            name = EXCLUDED.name
-                        """,
-                        (
-                            int(vac["id"]),
-                            int(area["id"]),
-                            area["name"],
-                        ),
-                    )
-
-                salary = vac.get("salary")
-
-                if salary is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO salary (
-                            vacancy_id,
-                            salary_from,
-                            salary_to,
-                            currency,
-                            gross
-                        )
-                        VALUES (%s, %s, %s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                            salary_from = EXCLUDED.salary_from,
-                            salary_to = EXCLUDED.salary_to,
-                            currency = EXCLUDED.currency,
-                            gross = EXCLUDED.gross
-                        """,
-                        (
-                            int(vac["id"]),
-                            salary.get("from"),
-                            salary.get("to"),
-                            salary.get("currency"),
-                            int(salary.get("gross")),
-                        ),
-                    )
-
-                type_ = vac.get("type")
-
-                if type_ is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO type (
-                            vacancy_id,
-                            id,
-                            name
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                            id = EXCLUDED.id,
-                            name = EXCLUDED.name
-                        """,
-                        (int(vac["id"]), type_["id"], type_["name"]),
-                    )
-
-                employee = vac.get("employer")
-
-                if employee is not None:
+                if employer is not None:
                     cursor.execute(
                         """
                         INSERT INTO employers (
@@ -283,85 +205,9 @@ def add_data_to_db(data: dict, conn_params: dict) -> None:
                         """,
                         (
                             int(vac["id"]),
-                            int(employee["id"]),
-                            employee["name"],
-                            employee["alternate_url"],
-                            int(employee["trusted"]),
+                            int(employer["id"]),
+                            employer["name"],
+                            employer.get("alternate_url"),
+                            int(employer["trusted"]),
                         ),
-                    )
-
-                snippet = vac.get("snippet")
-
-                if snippet is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO snippet (
-                        vacancy_id,
-                        requirement,
-                        responsibility
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                        requirement = EXCLUDED.requirement,
-                        responsibility = EXCLUDED.responsibility
-                        """,
-                        (int(vac["id"]), snippet["requirement"], snippet["responsibility"]),
-                    )
-
-                experience = vac.get("experience")
-
-                if experience is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO experience (
-                        vacancy_id,
-                        id,
-                        name
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                        id = EXCLUDED.id,
-                        name = EXCLUDED.name
-                        """,
-                        (int(vac["id"]), experience["id"], experience["name"]),
-                    )
-
-                employment = vac.get("employment")
-
-                if employment is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO employment (
-                        vacancy_id,
-                        id,
-                        name
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                        id = EXCLUDED.id,
-                        name = EXCLUDED.name
-                        """,
-                        (int(vac["id"]), employment["id"], employment["name"]),
-                    )
-
-                schedule = vac.get("schedule")
-
-                if schedule is not None:
-                    cursor.execute(
-                        """
-                        INSERT INTO schedule (
-                        vacancy_id,
-                        id,
-                        name
-                        )
-                        VALUES (%s, %s, %s)
-                        ON CONFLICT (vacancy_id)
-                        DO UPDATE SET
-                        id = EXCLUDED.id,
-                        name = EXCLUDED.name
-                        """,
-                        (int(vac["id"]), schedule["id"], schedule["name"]),
                     )
