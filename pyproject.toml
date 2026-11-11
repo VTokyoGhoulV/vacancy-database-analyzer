@@ -1,9 +1,9 @@
 [project]
-name = "dbproject"
+name = "vacancy-database-analyzer"
 version = "0.1.0"
-description = ""
+description = "Console application for importing and analyzing vacancy data in PostgreSQL"
 authors = [
-    {name = "Your Name",email = "you@example.com"}
+    {name = "VTokyoGhoulV"}
 ]
 requires-python = "^3.14"
 dependencies = [
